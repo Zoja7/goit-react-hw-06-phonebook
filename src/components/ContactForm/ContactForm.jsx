@@ -1,9 +1,34 @@
 import { useState } from 'react';
 import css from './ContactForm.module.css';
+import { nanoid } from 'nanoid';
+import { addContact } from 'redux/contacts/contacts.reducer';
+import { useDispatch, useSelector } from 'react-redux';
 
-const ContactForm = ({ handleAddContact }) => {
+const ContactForm = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(state => state.contactsStore.contacts);
+
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
+
+  const handleAddContact = data => {
+    const hasDuplicated = contacts.some(
+      contact => contact.name.toLowerCase() === data.name.toLowerCase()
+    );
+    if (hasDuplicated) {
+      alert(`'${data.name}' is already in contacts!`);
+      return;
+    }
+    const newContact = {
+      id: nanoid(),
+      ...data,
+    };
+
+    dispatch(addContact(newContact));
+
+    setNumber('');
+    setName('');
+  };
 
   const handleSubmit = event => {
     event.preventDefault();
@@ -14,9 +39,6 @@ const ContactForm = ({ handleAddContact }) => {
 
     if (data.name.trim() !== '' && data.number.trim() !== '') {
       handleAddContact(data);
-
-      setNumber('');
-      setName('');
     }
   };
 
@@ -50,7 +72,7 @@ const ContactForm = ({ handleAddContact }) => {
             required
             pattern="[a-zA-Zа-яА-ЯіІїЇґҐєЄ']+"
             value={name}
-            onChange={handleInputChange}
+            onChange={event => handleInputChange(event)}
           />
         </label>
         <label className={css.inputWrapper}>
@@ -62,7 +84,7 @@ const ContactForm = ({ handleAddContact }) => {
             pattern="^\+?\d{1,4}[ .\-]?\(?\d{1,3}\)?[ .\-]?\d{1,4}[ .\-]?\d{1,4}[ .\-]?\d{1,9}$"
             title="Format: XXX-XXX-XX-XX"
             value={number}
-            onChange={handleInputChange}
+            onChange={event => handleInputChange(event)}
           />
         </label>
         <button className={css.submitButton} type="submit">
